@@ -1,0 +1,767 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Validation stage
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@$(node -p "require('./package.json').packageManager.split('@')[1]") --activate
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --immutable --check-cache
+
+      - name: Run linter
+        run: yarn lint
+
+  type-check:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@$(node -p "require('./package.json').packageManager.split('@')[1]") --activate
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --immutable --check-cache
+
+      - name: Run type check
+        run: yarn type-check
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@$(node -p "require('./package.json').packageManager.split('@')[1]") --activate
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --immutable --check-cache
+
+      - name: Run security audit
+        run: yarn npm audit --all --recursive --environment production
+
+  # Generation stage
+  generate-sdk:
+    name: Generate SDK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@$(node -p "require('./package.json').packageManager.split('@')[1]") --activate
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --immutable --check-cache
+
+      - name: Generate complete SDK
+        run: |
+          echo "Generating complete SDK..."
+          yarn generate:sdk
+          echo "Verifying generated SDK structure..."
+          test -d src/core || (echo "Missing src/core directory" && exit 1)
+          test -d src/plugins || (echo "Missing src/plugins directory" && exit 1)
+          test -f src/index.ts || (echo "Missing src/index.ts" && exit 1)
+          test -f src/http-client.ts || (echo "Missing src/http-client.ts" && exit 1)
+          test -f src/keygen.ts || (echo "Missing src/keygen.ts" && exit 1)
+          test -f src/types.ts || (echo "Missing src/types.ts" && exit 1)
+          test -f src/build-config.json || (echo "Missing src/build-config.json" && exit 1)
+          echo "SDK generation completed successfully"
+
+      - name: Upload SDK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-sdk
+          path: src/
+          retention-days: 7
+
+  generate-docs:
+    name: Generate Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@$(node -p "require('./package.json').packageManager.split('@')[1]") --activate
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --immutable --check-cache
+
+      - name: Generate documentation
+        run: |
+          echo "Generating documentation..."
+          yarn generate:docs:core
+          yarn generate:docs:plugin
+          yarn generate:docs:typescript
+          echo "Verifying generated documentation..."
+          test -f docs/CORE.md || (echo "Missing docs/CORE.md" && exit 1)
+          test -f docs/PLUGINS.md || (echo "Missing docs/PLUGINS.md" && exit 1)
+          test -f typescript/README.md || (echo "Missing typescript/README.md" && exit 1)
+          echo "Documentation generation completed successfully"
+
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-docs
+          path: |
+            docs/
+            typescript/README.md
+          retention-days: 7
+
+  crawl-api:
+    name: Crawl OPNsense API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@$(node -p "require('./package.json').packageManager.split('@')[1]") --activate
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --immutable --check-cache
+
+      - name: Install Playwright browsers
+        run: npx playwright install
+
+      - name: Run API crawler
+        run: |
+          echo "Running OPNsense API crawler..."
+          yarn crawl:docs
+          echo "Verifying crawler output..."
+          test -d crawler/storage/key_value_stores/opnsense-api-modules || (echo "Missing crawler storage directory" && exit 1)
+          ls -la crawler/storage/key_value_stores/opnsense-api-modules/ | wc -l
+          echo "API crawling completed successfully"
+
+      - name: Upload crawler data
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawler-data
+          path: crawler/storage/
+          retention-days: 7
+
+  generate-postman:
+    name: Generate Postman Collections
+    runs-on: ubuntu-latest
+    needs: crawl-api
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@$(node -p "require('./package.json').packageManager.split('@')[1]") --activate
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --immutable --check-cache
+
+      - name: Download crawler data
+        uses: actions/download-artifact@v4
+        with:
+          name: crawler-data
+          path: crawler/storage/
+
+      - name: Generate Postman collections
+        run: |
+          echo "Generating Postman collections..."
+          yarn generate:postman:core
+          yarn generate:postman:plugin
+          echo "Verifying generated Postman collections..."
+          test -f postman/OPNsense_Core_Modules_API_Collection.postman_collection.json || (echo "Missing core Postman collection" && exit 1)
+          test -f postman/OPNsense_Plugin_Modules_API_Collection.postman_collection.json || (echo "Missing plugin Postman collection" && exit 1)
+          echo "Postman collection generation completed successfully"
+
+      - name: Upload Postman artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-postman
+          path: postman/
+          retention-days: 7
+
+  # Build stage
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: generate-sdk
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@$(node -p "require('./package.json').packageManager.split('@')[1]") --activate
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --immutable --check-cache
+
+      - name: Download SDK artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-sdk
+          path: src/
+
+      - name: Build SDK
+        run: |
+          echo "Building SDK..."
+          yarn build
+          ls -la dist/
+          echo "Verifying build outputs..."
+          test -f dist/index.js || (echo "Missing dist/index.js" && exit 1)
+          test -f dist/index.cjs || (echo "Missing dist/index.cjs" && exit 1)
+          test -f dist/index.d.ts || (echo "Missing dist/index.d.ts" && exit 1)
+          test -f dist/keygen.js || (echo "Missing dist/keygen.js" && exit 1)
+          test -f dist/keygen.cjs || (echo "Missing dist/keygen.cjs" && exit 1)
+          test -f dist/keygen.d.ts || (echo "Missing dist/keygen.d.ts" && exit 1)
+          echo "Build completed successfully"
+
+      - name: Show build artifacts
+        run: |
+          echo "Build artifacts:"
+          find dist -type f -exec ls -lh {} \;
+          echo "Total dist size: $(du -sh dist | cut -f1)"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+          retention-days: 7
+
+  # Validation stage
+  validate-build-artifacts:
+    name: Validate Build Artifacts
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@$(node -p "require('./package.json').packageManager.split('@')[1]") --activate
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --immutable --check-cache
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: Validate build artifacts
+        run: |
+          echo "Validating build artifacts..."
+
+          # Check required files exist and are not empty
+          for file in index.js index.cjs index.d.ts keygen.js keygen.cjs keygen.d.ts; do
+            test -f "dist/$file" || (echo "Missing dist/$file" && exit 1)
+            test -s "dist/$file" || (echo "dist/$file is empty" && exit 1)
+          done
+
+          echo "Build artifacts validated successfully"
+
+  validate-documentation:
+    name: Validate Documentation
+    runs-on: ubuntu-latest
+    needs: generate-docs
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@$(node -p "require('./package.json').packageManager.split('@')[1]") --activate
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --immutable --check-cache
+
+      - name: Download documentation artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-docs
+
+      - name: Validate documentation
+        run: |
+          echo "Validating generated documentation..."
+
+          # Check documentation files exist and have content
+          test -s docs/CORE.md || (echo "docs/CORE.md is empty or missing" && exit 1)
+          test -s docs/PLUGINS.md || (echo "docs/PLUGINS.md is empty or missing" && exit 1)
+          test -s typescript/README.md || (echo "typescript/README.md is empty or missing" && exit 1)
+
+          # Verify documentation contains expected sections
+          grep -q "OPNsense Core Modules API Documentation" docs/CORE.md || (echo "Missing title in CORE.md" && exit 1)
+          grep -q "OPNsense Plugin Modules API Documentation" docs/PLUGINS.md || (echo "Missing title in PLUGINS.md" && exit 1)
+          grep -q "OPNsense TypeScript API Client - Intermediate Stage Modules" typescript/README.md || (echo "Missing title in typescript README" && exit 1)
+
+          # Check that no "Generated on" timestamps exist
+          if grep -r "Generated on" docs/ typescript/README.md; then
+            echo "Found unwanted 'Generated on' timestamps in documentation"
+            exit 1
+          fi
+
+          echo "Documentation validation passed"
+
+  # Bundle analysis
+  bundle-analysis:
+    name: Bundle Analysis
+    runs-on: ubuntu-latest
+    needs: build
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@$(node -p "require('./package.json').packageManager.split('@')[1]") --activate
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --immutable --check-cache
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: Analyze bundle size
+        run: |
+          echo "Analyzing bundle size..."
+
+          # Calculate sizes for all build outputs
+          ESM_SIZE=$(stat -c%s dist/index.js)
+          CJS_SIZE=$(stat -c%s dist/index.cjs)
+          DTS_SIZE=$(stat -c%s dist/index.d.ts)
+          KEYGEN_ESM_SIZE=$(stat -c%s dist/keygen.js)
+          KEYGEN_CJS_SIZE=$(stat -c%s dist/keygen.cjs)
+          KEYGEN_DTS_SIZE=$(stat -c%s dist/keygen.d.ts)
+
+          echo "Bundle sizes:"
+          echo "  Main SDK:"
+          echo "    ESM (index.js): ${ESM_SIZE} bytes"
+          echo "    CJS (index.cjs): ${CJS_SIZE} bytes"
+          echo "    Types (index.d.ts): ${DTS_SIZE} bytes"
+          echo "  Keygen Utility:"
+          echo "    ESM (keygen.js): ${KEYGEN_ESM_SIZE} bytes"
+          echo "    CJS (keygen.cjs): ${KEYGEN_CJS_SIZE} bytes"
+          echo "    Types (keygen.d.ts): ${KEYGEN_DTS_SIZE} bytes"
+
+          TOTAL_SIZE=$((ESM_SIZE + CJS_SIZE + DTS_SIZE + KEYGEN_ESM_SIZE + KEYGEN_CJS_SIZE + KEYGEN_DTS_SIZE))
+          echo "  Total: ${TOTAL_SIZE} bytes"
+
+          # Warn if main bundles are too large (>2MB for SDK, >500KB for keygen)
+          if [ $ESM_SIZE -gt 2097152 ] || [ $CJS_SIZE -gt 2097152 ]; then
+            echo "⚠️  Warning: Main SDK bundle size exceeds 2MB"
+          fi
+          if [ $KEYGEN_ESM_SIZE -gt 512000 ] || [ $KEYGEN_CJS_SIZE -gt 512000 ]; then
+            echo "⚠️  Warning: Keygen utility bundle size exceeds 500KB"
+          fi
+
+          # Create size report
+          cat > bundle-size-report.json << EOF
+          {
+            "main_sdk": {
+              "esm_size": $ESM_SIZE,
+              "cjs_size": $CJS_SIZE,
+              "types_size": $DTS_SIZE
+            },
+            "keygen_utility": {
+              "esm_size": $KEYGEN_ESM_SIZE,
+              "cjs_size": $KEYGEN_CJS_SIZE,
+              "types_size": $KEYGEN_DTS_SIZE
+            },
+            "total_size": $TOTAL_SIZE,
+            "commit": "$GITHUB_SHA",
+            "ref": "$GITHUB_REF_NAME"
+          }
+          EOF
+
+          echo "Bundle analysis completed"
+
+      - name: Upload bundle size report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-size-report
+          path: bundle-size-report.json
+          retention-days: 30
+
+  # Package validation stage
+  validate-package:
+    name: Validate Package
+    runs-on: ubuntu-latest
+    needs: [build, generate-docs, generate-postman]
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@$(node -p "require('./package.json').packageManager.split('@')[1]") --activate
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --immutable --check-cache
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: Download documentation artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-docs
+
+      - name: Download Postman artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-postman
+          path: postman/
+
+      - name: Validate package structure
+        run: |
+          echo "Validating package structure..."
+
+          # Validate package.json exports
+          node -e "
+            const pkg = require('./package.json');
+            const fs = require('fs');
+            
+            // Check main entry points exist
+            if (!fs.existsSync(pkg.main)) {
+              throw new Error('Main entry point does not exist: ' + pkg.main);
+            }
+            if (!fs.existsSync(pkg.module)) {
+              throw new Error('Module entry point does not exist: ' + pkg.module);
+            }
+            if (!fs.existsSync(pkg.types)) {
+              throw new Error('Types entry point does not exist: ' + pkg.types);
+            }
+            
+            // Check exports
+            Object.entries(pkg.exports || {}).forEach(([key, value]) => {
+              if (typeof value === 'object') {
+                Object.entries(value).forEach(([format, path]) => {
+                  if (!fs.existsSync(path)) {
+                    throw new Error('Export path does not exist: ' + path + ' for ' + key + '.' + format);
+                  }
+                });
+              }
+            });
+            
+            console.log('Package structure validation passed');
+          "
+
+          # Test package installation simulation
+          yarn pack --dry-run
+
+          echo "Package validation completed successfully"
+
+  package-tarball:
+    name: Package Tarball
+    runs-on: ubuntu-latest
+    needs: [build, generate-docs, generate-postman]
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@$(node -p "require('./package.json').packageManager.split('@')[1]") --activate
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --immutable --check-cache
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: Download documentation artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-docs
+
+      - name: Download Postman artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-postman
+          path: postman/
+
+      - name: Create package tarball
+        run: |
+          yarn pack
+          ls -la *.tgz
+
+      - name: Upload package tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-tarball
+          path: '*.tgz'
+          retention-days: 7

@@ -1,0 +1,81 @@
+{
+  "name": "@richard-stovall/opnsense-typescript-client",
+  "version": "0.5.3",
+  "description": "TypeScript client for OPNsense API",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pixelworlds/opnsense-typescript-client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Pixelworlds/opnsense-typescript-client/issues"
+  },
+  "homepage": "https://github.com/Pixelworlds/opnsense-typescript-client#readme",
+  "author": "Richard Stovall",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "packageManager": "yarn@4.9.2",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./keygen": {
+      "require": "./dist/keygen.cjs",
+      "import": "./dist/keygen.js",
+      "types": "./dist/keygen.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c --watch",
+    "clean": "rm -rf dist",
+    "prebuild": "yarn clean",
+    "pack": "yarn pack",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "test": "echo 'No tests specified yet' && exit 0",
+    "test:coverage": "echo 'No coverage tests specified yet' && exit 0",
+    "crawl:docs": "npx tsx crawler/crawler.ts",
+    "generate:docs:crawl": "node generators/generate-crawler-docs.js",
+    "generate:docs:core": "node generators/generate-core-docs.js",
+    "generate:docs:plugin": "node generators/generate-plugin-docs.js",
+    "generate:docs:typescript": "node generators/generate-typescript-readme.js",
+    "generate:postman:core": "node generators/generate-core-postman-collection.js",
+    "generate:postman:plugin": "node generators/generate-plugin-postman-collection.js",
+    "generate:typescript:core": "node generators/generate-core-modules.js",
+    "generate:typescript:plugin": "node generators/generate-plugin-modules.js",
+    "generate:sdk": "node generators/generate-sdk.js"
+  },
+  "devDependencies": {
+    "@eslint/js": "^8.57.0",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "crawlee": "^3.13.8",
+    "eslint": "^8.57.0",
+    "globals": "^13.24.0",
+    "playwright": "^1.53.1",
+    "rollup": "^4.9.4",
+    "rollup-plugin-delete": "^3.0.1",
+    "rollup-plugin-dts": "^6.1.0",
+    "tslib": "^2.6.2",
+    "typescript": "^5"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "axios": "^1.10.0",
+    "corepack": "^0.34.0"
+  }
+}

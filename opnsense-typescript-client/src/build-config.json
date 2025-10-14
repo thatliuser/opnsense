@@ -1,0 +1,348 @@
+{
+  "description": "Build configuration for OPNsense TypeScript SDK",
+  "generated": "2025-06-30T05:00:18.392Z",
+  "note": "Required modules (core, auth, firewall, interfaces, keygen) are always included and not configurable",
+  "modules": {
+    "core": {
+      "captiveportal": {
+        "include": true,
+        "description": "Core captiveportal module"
+      },
+      "cron": {
+        "include": true,
+        "description": "Core cron module"
+      },
+      "dhcpv4": {
+        "include": true,
+        "description": "Core dhcpv4 module"
+      },
+      "dhcpv6": {
+        "include": true,
+        "description": "Core dhcpv6 module"
+      },
+      "dhcrelay": {
+        "include": true,
+        "description": "Core dhcrelay module"
+      },
+      "diagnostics": {
+        "include": true,
+        "description": "Core diagnostics module"
+      },
+      "dnsmasq": {
+        "include": true,
+        "description": "Core dnsmasq module"
+      },
+      "firmware": {
+        "include": true,
+        "description": "Core firmware module"
+      },
+      "ids": {
+        "include": true,
+        "description": "Core ids module"
+      },
+      "ipsec": {
+        "include": true,
+        "description": "Core ipsec module"
+      },
+      "kea": {
+        "include": true,
+        "description": "Core kea module"
+      },
+      "monit": {
+        "include": true,
+        "description": "Core monit module"
+      },
+      "openvpn": {
+        "include": true,
+        "description": "Core openvpn module"
+      },
+      "routes": {
+        "include": true,
+        "description": "Core routes module"
+      },
+      "routing": {
+        "include": true,
+        "description": "Core routing module"
+      },
+      "syslog": {
+        "include": true,
+        "description": "Core syslog module"
+      },
+      "trafficshaper": {
+        "include": true,
+        "description": "Core trafficshaper module"
+      },
+      "trust": {
+        "include": true,
+        "description": "Core trust module"
+      },
+      "unbound": {
+        "include": true,
+        "description": "Core unbound module"
+      },
+      "wireguard": {
+        "include": true,
+        "description": "Core wireguard module"
+      }
+    },
+    "plugins": {
+      "acmeclient": {
+        "include": true,
+        "description": "Plugin acmeclient module"
+      },
+      "apcupsd": {
+        "include": true,
+        "description": "Plugin apcupsd module"
+      },
+      "bind": {
+        "include": true,
+        "description": "Plugin bind module"
+      },
+      "caddy": {
+        "include": true,
+        "description": "Plugin caddy module"
+      },
+      "chrony": {
+        "include": true,
+        "description": "Plugin chrony module"
+      },
+      "cicap": {
+        "include": true,
+        "description": "Plugin cicap module"
+      },
+      "clamav": {
+        "include": true,
+        "description": "Plugin clamav module"
+      },
+      "collectd": {
+        "include": true,
+        "description": "Plugin collectd module"
+      },
+      "crowdsec": {
+        "include": true,
+        "description": "Plugin crowdsec module"
+      },
+      "dechw": {
+        "include": true,
+        "description": "Plugin dechw module"
+      },
+      "diagnostics": {
+        "include": true,
+        "description": "Plugin diagnostics module"
+      },
+      "dmidecode": {
+        "include": true,
+        "description": "Plugin dmidecode module"
+      },
+      "dnscryptproxy": {
+        "include": true,
+        "description": "Plugin dnscryptproxy module"
+      },
+      "dyndns": {
+        "include": true,
+        "description": "Plugin dyndns module"
+      },
+      "freeradius": {
+        "include": true,
+        "description": "Plugin freeradius module"
+      },
+      "ftpproxy": {
+        "include": true,
+        "description": "Plugin ftpproxy module"
+      },
+      "gridexample": {
+        "include": true,
+        "description": "Plugin gridexample module"
+      },
+      "haproxy": {
+        "include": true,
+        "description": "Plugin haproxy module"
+      },
+      "helloworld": {
+        "include": true,
+        "description": "Plugin helloworld module"
+      },
+      "hwprobe": {
+        "include": true,
+        "description": "Plugin hwprobe module"
+      },
+      "iperf": {
+        "include": true,
+        "description": "Plugin iperf module"
+      },
+      "lldpd": {
+        "include": true,
+        "description": "Plugin lldpd module"
+      },
+      "maltrail": {
+        "include": true,
+        "description": "Plugin maltrail module"
+      },
+      "mdnsrepeater": {
+        "include": true,
+        "description": "Plugin mdnsrepeater module"
+      },
+      "muninnode": {
+        "include": true,
+        "description": "Plugin muninnode module"
+      },
+      "ndproxy": {
+        "include": true,
+        "description": "Plugin ndproxy module"
+      },
+      "netdata": {
+        "include": true,
+        "description": "Plugin netdata module"
+      },
+      "netsnmp": {
+        "include": true,
+        "description": "Plugin netsnmp module"
+      },
+      "nginx": {
+        "include": true,
+        "description": "Plugin nginx module"
+      },
+      "nodeexporter": {
+        "include": true,
+        "description": "Plugin nodeexporter module"
+      },
+      "nrpe": {
+        "include": true,
+        "description": "Plugin nrpe module"
+      },
+      "ntopng": {
+        "include": true,
+        "description": "Plugin ntopng module"
+      },
+      "nut": {
+        "include": true,
+        "description": "Plugin nut module"
+      },
+      "openconnect": {
+        "include": true,
+        "description": "Plugin openconnect module"
+      },
+      "postfix": {
+        "include": true,
+        "description": "Plugin postfix module"
+      },
+      "proxy": {
+        "include": true,
+        "description": "Plugin proxy module"
+      },
+      "proxysso": {
+        "include": true,
+        "description": "Plugin proxysso module"
+      },
+      "puppetagent": {
+        "include": true,
+        "description": "Plugin puppetagent module"
+      },
+      "qemuguestagent": {
+        "include": true,
+        "description": "Plugin qemuguestagent module"
+      },
+      "quagga": {
+        "include": true,
+        "description": "Plugin quagga module"
+      },
+      "radsecproxy": {
+        "include": true,
+        "description": "Plugin radsecproxy module"
+      },
+      "redis": {
+        "include": true,
+        "description": "Plugin redis module"
+      },
+      "relayd": {
+        "include": true,
+        "description": "Plugin relayd module"
+      },
+      "rspamd": {
+        "include": true,
+        "description": "Plugin rspamd module"
+      },
+      "shadowsocks": {
+        "include": true,
+        "description": "Plugin shadowsocks module"
+      },
+      "siproxd": {
+        "include": true,
+        "description": "Plugin siproxd module"
+      },
+      "smart": {
+        "include": true,
+        "description": "Plugin smart module"
+      },
+      "softether": {
+        "include": true,
+        "description": "Plugin softether module"
+      },
+      "sslh": {
+        "include": true,
+        "description": "Plugin sslh module"
+      },
+      "stunnel": {
+        "include": true,
+        "description": "Plugin stunnel module"
+      },
+      "tailscale": {
+        "include": true,
+        "description": "Plugin tailscale module"
+      },
+      "tayga": {
+        "include": true,
+        "description": "Plugin tayga module"
+      },
+      "telegraf": {
+        "include": true,
+        "description": "Plugin telegraf module"
+      },
+      "tftp": {
+        "include": true,
+        "description": "Plugin tftp module"
+      },
+      "tinc": {
+        "include": true,
+        "description": "Plugin tinc module"
+      },
+      "tor": {
+        "include": true,
+        "description": "Plugin tor module"
+      },
+      "turnserver": {
+        "include": true,
+        "description": "Plugin turnserver module"
+      },
+      "udpbroadcastrelay": {
+        "include": true,
+        "description": "Plugin udpbroadcastrelay module"
+      },
+      "vnstat": {
+        "include": true,
+        "description": "Plugin vnstat module"
+      },
+      "wazuhagent": {
+        "include": true,
+        "description": "Plugin wazuhagent module"
+      },
+      "wol": {
+        "include": true,
+        "description": "Plugin wol module"
+      },
+      "zabbixagent": {
+        "include": true,
+        "description": "Plugin zabbixagent module"
+      },
+      "zabbixproxy": {
+        "include": true,
+        "description": "Plugin zabbixproxy module"
+      },
+      "zerotier": {
+        "include": true,
+        "description": "Plugin zerotier module"
+      }
+    },
+    "utilities": {}
+  }
+}
