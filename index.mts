@@ -160,7 +160,6 @@ async function onAdd() {
 					network: cidr,
 				}
 			}
-			console.log(data)
 			const resp = await client.routes.routesAddroute(data)
 			if (resp.data.result !== 'saved') {
 				throw new Error(`Failed to add route: ${JSON.stringify(resp.data)}`)
