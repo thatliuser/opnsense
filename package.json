@@ -1,0 +1,19 @@
+{
+  "name": "opnsense",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "tsx index.mts"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@richard-stovall/opnsense-typescript-client": "file:../opnsense-typescript-client",
+    "@types/node": "^24.7.2",
+    "commander": "^14.0.1",
+    "dotenv": "^17.2.3",
+    "ipaddr.js": "^2.2.0",
+    "tsx": "^4.20.6",
+    "zod": "^4.1.12"
+  }
+}
