@@ -22,11 +22,30 @@ export const Routes = z.array(Route)
 
 export interface GatewayType {
 	gateway_item: {
+		data_length: '',
+		defaultgw: '0' | '1',
+		descr: string,
 		disabled: '0' | '1',
+		fargw: '0' | '1',
+		force_down: '0' | '1',
 		// IP address
 		gateway: string,
 		interface: 'lan' | 'wan'
+		interval: '',
+		ipprotocol: 'inet',
+		latencyhigh: '',
+		latencylow: '',
+		loss_interval: '',
+		losshigh: '',
+		losslow: '',
+		// IP address
+		monitor: string
+		monitor_disable: '0' | '1',
+		monitor_noroute: '0' | '1',
 		name: string,
+		priority: '255',
+		time_period: '',
+		weight: '1',
 	}
 }
 

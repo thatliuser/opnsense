@@ -35,7 +35,7 @@ async function getConfig(path: string): Promise<z.infer<typeof Config>> {
 	return Config.parse(json)
 }
 
-async function onUpDown(up: boolean) {
+async function onUpDown(up: boolean, route: boolean) {
 	const caption = up ? 'up' : 'down'
 	const disabled = up ? '0' : '1'
 	const client = await getClient()
@@ -62,36 +62,61 @@ async function onUpDown(up: boolean) {
 
 		const data: GatewayType = {
 			gateway_item: {
+				data_length: '',
+				defaultgw: '0',
+				descr: '',
 				disabled: disabled,
+				fargw: '0',
+				force_down: '0',
+				// IP address
 				gateway: foundGw.gateway,
 				interface: 'lan',
+				interval: '',
+				ipprotocol: 'inet',
+				latencyhigh: '',
+				latencylow: '',
+				loss_interval: '',
+				losshigh: '',
+				losslow: '',
+				// IP address
+				monitor: foundGw.gateway,
+				monitor_disable: '0',
+				monitor_noroute: '0',
 				name: foundGw.name,
+				priority: '255',
+				time_period: '',
+				weight: '1',
 			}
 		}
 		console.log(`Setting gateway ${foundGw.name} as ${caption}`)
 		const resp = await client.routing.settingsSetGateway(foundGw.uuid, data)
+		if (resp.data.result !== 'saved') {
+			throw new Error(`Failed to set gateway: ${JSON.stringify(resp.data)}`)
+		}
 
-		const foundRoute = routes.find((route) => route.gateway.startsWith(gatewayName))
-		if (foundRoute !== undefined) {
-			const bytes = ipv4.toByteArray()
-			bytes[3] = 0
-			const cidr = `${ip.fromByteArray(bytes)}/24`
-			const data: RouteType = {
-				route: {
-					descr: '',
-					disabled: disabled,
-					gateway: gatewayName,
-					network: cidr,
+		if (route) {
+			const foundRoute = routes.find((route) => route.gateway.startsWith(gatewayName))
+			if (foundRoute !== undefined) {
+				const bytes = ipv4.toByteArray()
+				bytes[3] = 0
+				const cidr = `${ip.fromByteArray(bytes)}/24`
+				const data: RouteType = {
+					route: {
+						descr: '',
+						disabled: disabled,
+						gateway: gatewayName,
+						network: cidr,
+					}
+				}
+				console.log(`Setting route ${foundRoute.network} with gateway ${foundRoute.gateway} as ${caption}`)
+				const resp = await client.routes.routesSetroute(foundRoute.uuid, data)
+				if (resp.data.result !== 'saved') {
+					throw new Error(`Failed to set route: ${JSON.stringify(resp.data)}`)
 				}
 			}
-			console.log(`Setting route ${foundRoute.network} with gateway ${foundRoute.gateway} as ${caption}`)
-			const resp = await client.routes.routesSetroute(foundRoute.uuid, data)
-			if (resp.data.result !== 'saved') {
-				throw new Error(`Failed to set route: ${JSON.stringify(resp.data)}`)
+			else {
+				throw new Error(`Route with gateway ${gatewayName} not found; have you created the gateways yet with 'add'?`)
 			}
-		}
-		else {
-			throw new Error(`Route with gateway ${gatewayName} not found; have you created the gateways yet with 'add'?`)
 		}
 
 		// We assume a /24 CIDR
@@ -99,14 +124,27 @@ async function onUpDown(up: boolean) {
 		bytes[2] += 1
 		ipv4 = ip.fromByteArray(bytes)
 	}
+
+	let resp = await client.routing.settingsReconfigure()
+	if (resp.data.status !== 'ok') {
+		throw new Error(`Failed to reconfigure routing settings: ${JSON.stringify(resp.data)}`)
+	}
+
+
+	resp = await client.routes.routesReconfigure()
+	if (resp.data.status !== 'ok') {
+		throw new Error(`Failed to reconfigure route settings: ${JSON.stringify(resp.data)}`)
+	}
 }
 
-async function onUp() {
-	await onUpDown(true)
+async function onUp(route: boolean | undefined) {
+	route = route ?? false
+	await onUpDown(true, route)
 }
 
-async function onDown() {
-	await onUpDown(false)
+async function onDown(route: boolean | undefined) {
+	route = route ?? false
+	await onUpDown(false, route)
 }
 
 async function onAdd() {
@@ -128,10 +166,30 @@ async function onAdd() {
 			console.log(`Adding gateway ${gatewayName} with IP ${ipStr}`)
 			const data: GatewayType = {
 				gateway_item: {
+					data_length: '',
+					defaultgw: '0',
+					descr: '',
 					disabled: '1',
-					name: gatewayName,
-					interface: 'lan',
+					fargw: '0',
+					force_down: '0',
+					// IP address
 					gateway: ipStr,
+					interface: 'lan',
+					interval: '',
+					ipprotocol: 'inet',
+					latencyhigh: '',
+					latencylow: '',
+					loss_interval: '',
+					losshigh: '',
+					losslow: '',
+					// IP address
+					monitor: ipStr,
+					monitor_disable: '0',
+					monitor_noroute: '0',
+					name: gatewayName,
+					priority: '255',
+					time_period: '',
+					weight: '1',
 				}
 			}
 			const resp = await client.routing.settingsAddGateway(data)
@@ -203,8 +261,10 @@ cli
 	.version('0.1.0')
 
 cli.command('up')
+	.argument('[route]')
 	.action(onUp)
 cli.command('down')
+	.argument('[route]')
 	.action(onDown)
 
 cli.command('add')

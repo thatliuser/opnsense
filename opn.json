@@ -1,5 +1,5 @@
 {
-    "prefix": "training-2",
-    "count": 20,
-    "firstRouter": "10.178.0.1"
+    "prefix": "training-1",
+    "count": 15,
+    "firstRouter": "10.177.1.1"
 }
