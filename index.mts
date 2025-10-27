@@ -12,6 +12,10 @@ const Config = z.object({
 	firstRouter: z.ipv4()
 })
 
+async function sleep(ms: number) {
+	await new Promise(resolve => setTimeout(resolve, ms))
+}
+
 async function getGateways(client: OPNsenseClient): Promise<z.infer<typeof Gateways>> {
 	const gateways = await client.routing.settingsSearchGateway()
 	if (gateways.data.rows !== undefined) {
@@ -21,7 +25,7 @@ async function getGateways(client: OPNsenseClient): Promise<z.infer<typeof Gatew
 }
 
 async function getRoutes(client: OPNsenseClient): Promise<z.infer<typeof Routes>> {
-	const routes = await client.routes.routesSearchroute();
+	const routes = await client.routes.routesSearchroute()
 	if (routes.data.rows !== undefined) {
 		return Routes.parse(routes.data.rows)
 	}
@@ -209,18 +213,28 @@ async function onAdd() {
 
 	for (const [gw, cidr] of addedGateways) {
 		if (!routes.find((route) => route.gateway.startsWith(gw))) {
-			console.log(`Adding route ${cidr}`)
-			const data: RouteType = {
-				route: {
-					descr: '',
-					disabled: '1',
-					gateway: gw,
-					network: cidr,
+			while (true) {
+				console.log(`Adding route ${cidr}`)
+				const data: RouteType = {
+					route: {
+						descr: '',
+						disabled: '1',
+						gateway: gw,
+						network: cidr,
+					}
 				}
-			}
-			const resp = await client.routes.routesAddroute(data)
-			if (resp.data.result !== 'saved') {
-				throw new Error(`Failed to add route: ${JSON.stringify(resp.data)}`)
+				const resp = await client.routes.routesAddroute(data)
+				if (resp.data.result === 'saved') {
+					break
+				}
+
+				const str = JSON.stringify(resp.data)
+				if (str.includes("Specify a valid gateway")) {
+					console.log("Waiting for a second since gateways seemed to not apply")
+					await sleep(1000)
+				} else {
+					throw new Error(`Failed to add route: ${JSON.stringify(resp.data)}`)
+				}
 			}
 		}
 	}
