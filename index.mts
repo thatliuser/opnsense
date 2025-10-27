@@ -99,7 +99,7 @@ async function onUpDown(up: boolean, route: boolean) {
 		}
 
 		if (route) {
-			const foundRoute = routes.find((route) => route.gateway.startsWith(gatewayName))
+			const foundRoute = routes.find((route) => route.gateway === `${foundGw.name} - ${foundGw.gateway}`)
 			if (foundRoute !== undefined) {
 				const bytes = ipv4.toByteArray()
 				bytes[3] = 0
@@ -253,7 +253,7 @@ async function onDel(str: string | undefined) {
 	const regex = new RegExp(str)
 
 	for (let gw of gateways.filter((gw) => regex.test(gw.name))) {
-		for (let route of routes.filter(route => route.gateway.startsWith(gw.name))) {
+		for (let route of routes.filter(route => route.gateway === `${gw.name} - ${gw.gateway}`)) {
 			console.log(`Deleting route ${route.network} with gateway ${route.gateway}`)
 			const resp = await client.routes.routesDelroute(route.uuid)
 			if (resp.data.result !== 'deleted') {
