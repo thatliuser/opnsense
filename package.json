@@ -2,7 +2,8 @@
   "name": "opnsense",
   "version": "1.0.0",
   "scripts": {
-    "start": "tsx index.mts"
+    "start": "tsx index.mts",
+    "clone": "tsx clone.mts"
   },
   "author": "",
   "license": "ISC",
@@ -13,6 +14,7 @@
     "commander": "^14.0.1",
     "dotenv": "^17.2.3",
     "ipaddr.js": "^2.2.0",
+    "proxmox-api": "^1.1.1",
     "tsx": "^4.20.6",
     "zod": "^4.1.12"
   }

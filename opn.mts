@@ -1,5 +1,6 @@
 import OPNsenseClient from '@richard-stovall/opnsense-typescript-client'
 import z from 'zod'
+import { throwIfUndefined } from './util.mts'
 
 export const Gateway = z.object({
 	name: z.string(),
@@ -63,14 +64,6 @@ async function testConnection(client: OPNsenseClient): Promise<void> {
 	const result = await client.testConnection()
 	if (result.success !== true) {
 		throw new Error(`Client test connection failed: ${result}`)
-	}
-}
-
-function throwIfUndefined(envVar: string | undefined): string {
-	if (envVar === undefined) {
-		throw new Error('Environment variable is undefined')
-	} else {
-		return envVar
 	}
 }
 

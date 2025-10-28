@@ -5,16 +5,13 @@ import z from 'zod'
 import { readFile } from 'node:fs/promises'
 import ip from 'ipaddr.js'
 import 'dotenv/config'
+import { sleep } from './util.mts'
 
 const Config = z.object({
 	prefix: z.string(),
 	count: z.number().gt(0),
 	firstRouter: z.ipv4()
 })
-
-async function sleep(ms: number) {
-	await new Promise(resolve => setTimeout(resolve, ms))
-}
 
 async function getGateways(client: OPNsenseClient): Promise<z.infer<typeof Gateways>> {
 	const gateways = await client.routing.settingsSearchGateway()
