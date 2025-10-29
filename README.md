@@ -51,4 +51,5 @@ npm run clone down
 ```
 
 ## Credits
-opnsense-typescript-client is created by Pixelworlds (https://github.com/Pixelworlds/opnsense-typescript-client)
+- opnsense-typescript-client is created by Pixelworlds (https://github.com/Pixelworlds/opnsense-typescript-client)
+- SPAM (https://github.com/jacobseunglee/SPAM) was a huge inspiration for this project
