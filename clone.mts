@@ -2,7 +2,8 @@ import { Proxmox, proxmoxApi } from "proxmox-api";
 import { throwIfUndefined } from "./util.mts";
 import { Command } from 'commander'
 import 'dotenv/config'
-import { Config, config } from './config.mts'
+import type { Config } from './config.mts'
+import config from './tspmo.config.ts'
 import { sleep } from './util.mts'
 import ip from 'ipaddr.js'
 import { onAdd, onDel, onUp, waitForGateways } from './index.mts'
