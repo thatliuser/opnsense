@@ -2,16 +2,10 @@ import OPNsenseClient from '@richard-stovall/opnsense-typescript-client'
 import { getClient, Gateways, GatewayType, Routes, RouteType } from './opn.mts'
 import { Command } from 'commander'
 import z from 'zod'
-import { readFile } from 'node:fs/promises'
 import ip from 'ipaddr.js'
 import 'dotenv/config'
 import { sleep } from './util.mts'
-
-const Config = z.object({
-	prefix: z.string(),
-	count: z.number().gt(0),
-	firstRouter: z.ipv4()
-})
+import { Config, config } from './config.mts'
 
 async function getGateways(client: OPNsenseClient): Promise<z.infer<typeof Gateways>> {
 	const gateways = await client.routing.settingsSearchGateway()
@@ -29,29 +23,17 @@ async function getRoutes(client: OPNsenseClient): Promise<z.infer<typeof Routes>
 	throw new Error(`Failed to search routes: ${routes.data.message}`)
 }
 
-async function getConfig(path: string): Promise<z.infer<typeof Config>> {
-	const buffer = await readFile(path)
-	const contents = buffer.toString('utf8')
-	const json = JSON.parse(contents)
-	return Config.parse(json)
-}
-
-async function onUpDown(up: boolean, route: boolean) {
+export async function onUpDown(up: boolean, route: boolean) {
 	const caption = up ? 'up' : 'down'
 	const disabled = up ? '0' : '1'
 	const client = await getClient()
 	const gateways = await getGateways(client)
 	const routes = await getRoutes(client)
-	const config = await getConfig('opn.json')
 
-	let ipv4 = ip.parse(config.firstRouter)
+	let ipv4 = config.firstRouter
 
-	if (!(ipv4 instanceof ip.IPv4)) {
-		throw new Error('IPv6 is not supported for now')
-	}
-
-	for (let i = 0; i < config.count; ++i) {
-		const gatewayName = `${config.prefix}-gateway-${i}`
+	for (let i = 0; i < config.copies; ++i) {
+		const gatewayName = `${config.gwPrefix}-gateway-${i}`
 		const foundGw = gateways.find((gw) => gw.name === gatewayName)
 		if (foundGw === undefined) {
 			throw new Error(`Gateway ${gatewayName} not found; have you created the gateways yet with 'add'?`)
@@ -123,7 +105,7 @@ async function onUpDown(up: boolean, route: boolean) {
 		// We assume a /24 CIDR
 		const bytes = ipv4.toByteArray()
 		bytes[2] += 1
-		ipv4 = ip.fromByteArray(bytes)
+		ipv4 = new ip.IPv4(bytes)
 	}
 
 	let resp = await client.routing.settingsReconfigure()
@@ -138,30 +120,26 @@ async function onUpDown(up: boolean, route: boolean) {
 	}
 }
 
-async function onUp(route: boolean | undefined) {
+export async function onUp(route: boolean | undefined) {
 	route = route ?? false
 	await onUpDown(true, route)
 }
 
-async function onDown(route: boolean | undefined) {
+export async function onDown(route: boolean | undefined) {
 	route = route ?? false
 	await onUpDown(false, route)
 }
 
-async function onAdd() {
+export async function onAdd() {
 	const client = await getClient()
 	const gateways = await getGateways(client)
 	const routes = await getRoutes(client)
-	const config = await getConfig('opn.json')
 
-	let ipv4 = ip.parse(config.firstRouter)
-	if (!(ipv4 instanceof ip.IPv4)) {
-		throw new Error('IPv6 is not supported for now')
-	}
+	let ipv4 = config.firstRouter
 
 	const addedGateways: [string, string][] = []
-	for (let i = 0; i < config.count; ++i) {
-		const gatewayName = `${config.prefix}-gateway-${i}`
+	for (let i = 0; i < config.copies; ++i) {
+		const gatewayName = `${config.gwPrefix}-gateway-${i}`
 		if (!gateways.find((gw) => gw.name === gatewayName)) {
 			const ipStr = ipv4.toNormalizedString()
 			console.log(`Adding gateway ${gatewayName} with IP ${ipStr}`)
@@ -205,7 +183,7 @@ async function onAdd() {
 		// We assume a /24 CIDR
 		bytes = ipv4.toByteArray()
 		bytes[2] += 1
-		ipv4 = ip.fromByteArray(bytes)
+		ipv4 = new ip.IPv4(bytes)
 	}
 
 	for (const [gw, cidr] of addedGateways) {
@@ -237,14 +215,13 @@ async function onAdd() {
 	}
 }
 
-async function onDel(str: string | undefined) {
+export async function onDel(str: string | undefined) {
 	const client = await getClient()
 	const gateways = await getGateways(client)
 	const routes = await getRoutes(client)
-	const config = await getConfig('opn.json')
 
 	if (str === undefined) {
-		str = config.prefix
+		str = config.gwPrefix
 	}
 
 	const regex = new RegExp(str)
@@ -265,24 +242,49 @@ async function onDel(str: string | undefined) {
 	}
 }
 
-const cli = new Command()
-cli
-	.name('opnsense')
-	.description('Configure, enable, and disable opnsense routes and gateways')
-	.version('0.1.0')
+export async function waitForGateways(ips: string[]) {
+	const client = await getClient()
+	for (let ip of ips) {
+		let gateways = await getGateways(client)
 
-cli.command('up')
-	.argument('[route]')
-	.action(onUp)
-cli.command('down')
-	.argument('[route]')
-	.action(onDown)
+		let found = gateways.filter(gw => gw.gateway === ip)
+		if (found.length < 1) {
+			throw Error(`Couldn't find gateway with IP ${ip}`)
+		}
 
-cli.command('add')
-	.action(onAdd)
+		while (true) {
+			const foundGw = found[0]
+			if (foundGw.status === "Online") {
+				break
+			}
+			console.log(`Gateway is offline, waiting 1 second (${foundGw.loss} loss)`)
+			await sleep(1000)
+			gateways = await getGateways(client)
+			found = gateways.filter(gw => gw.uuid === foundGw.uuid)
+		}
+	}
+}
 
-cli.command('del')
-	.argument('[regex]')
-	.action(onDel)
+if (import.meta.main) {
+	const cli = new Command()
+	cli
+		.name('opnsense')
+		.description('Configure, enable, and disable opnsense routes and gateways')
+		.version('0.1.0')
 
-await cli.parseAsync()
+	cli.command('up')
+		.argument('[route]')
+		.action(onUp)
+	cli.command('down')
+		.argument('[route]')
+		.action(onDown)
+
+	cli.command('add')
+		.action(onAdd)
+
+	cli.command('del')
+		.argument('[regex]')
+		.action(onDel)
+
+	await cli.parseAsync()
+}

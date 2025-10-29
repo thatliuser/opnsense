@@ -7,7 +7,11 @@ export const Gateway = z.object({
 	disabled: z.boolean(),
 	descr: z.string(),
 	gateway: z.ipv4().optional(),
-	uuid: z.string()
+	uuid: z.string(),
+	status: z.string(),
+	delay: z.string(),
+	stddev: z.string(),
+	loss: z.string(),
 })
 
 export const Gateways = z.array(Gateway)
