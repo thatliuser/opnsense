@@ -22,8 +22,12 @@ OPNSENSE_API_SECRET=secret
 
 
 PROXMOX_HOST=192.168.2.10
+# User authentication
 PROXMOX_USER=root@pam
 PROXMOX_PASS='secret'
+# Token authentication
+PROXMOX_TOKEN_ID='user@pve!tokenid'
+PROXMOX_TOKEN_SECRET='secret'
 ```
 
 Edit your config to your liking in `config.mts`:
