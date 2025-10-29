@@ -1,4 +1,4 @@
-import proxmoxApi from "proxmox-api";
+import { Proxmox, proxmoxApi } from "proxmox-api";
 import { throwIfUndefined } from "./util.mts";
 import { Command } from 'commander'
 import 'dotenv/config'
@@ -6,15 +6,27 @@ import { Config, config } from './config.mts'
 import { sleep } from './util.mts'
 import ip from 'ipaddr.js'
 import { onAdd, onDel, onUp, waitForGateways } from './index.mts'
+import { env } from 'node:process'
 
 // allow self-signed TLS cert
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
 
-const host = throwIfUndefined(process.env.PROXMOX_HOST)
-const username = throwIfUndefined(process.env.PROXMOX_USER)
-const password = throwIfUndefined(process.env.PROXMOX_PASS)
-// it says the default port is 8006 but i think it's lying
-const prox = proxmoxApi({ host, username, password, port: 8006 })
+function getClient(): Proxmox.Api {
+	const host = throwIfUndefined(env.PROXMOX_HOST)
+	try {
+		const username = throwIfUndefined(env.PROXMOX_USER)
+		const password = throwIfUndefined(env.PROXMOX_PASS)
+		// it says the default port is 8006 but i think it's lying
+		return proxmoxApi({ host, username, password, port: 8006 })
+	}
+	catch (e) {
+		console.log('Authentication with user credentials failed, trying token authentication')
+		const tokenID = throwIfUndefined(env.PROXMOX_TOKEN_ID)
+		const tokenSecret = throwIfUndefined(env.PROXMOX_TOKEN_SECRET)
+		return proxmoxApi({ host, tokenID, tokenSecret, port: 8006 })
+	}
+}
+const prox = getClient()
 
 // Converts a config string, with key-value pairs using = separated by commas, into a Typescript record
 function confToRecord(conf: string): Record<string, string> {

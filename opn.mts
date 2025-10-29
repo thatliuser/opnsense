@@ -1,6 +1,7 @@
 import OPNsenseClient from '@richard-stovall/opnsense-typescript-client'
 import z from 'zod'
 import { throwIfUndefined } from './util.mts'
+import { env } from 'node:process'
 
 export const Gateway = z.object({
 	name: z.string(),
@@ -73,9 +74,9 @@ async function testConnection(client: OPNsenseClient): Promise<void> {
 
 export async function getClient(): Promise<OPNsenseClient> {
 	const client = new OPNsenseClient({
-		baseUrl: throwIfUndefined(process.env.OPNSENSE_BASE_URL),
-		apiKey: throwIfUndefined(process.env.OPNSENSE_API_KEY),
-		apiSecret: throwIfUndefined(process.env.OPNSENSE_API_SECRET),
+		baseUrl: throwIfUndefined(env.OPNSENSE_BASE_URL),
+		apiKey: throwIfUndefined(env.OPNSENSE_API_KEY),
+		apiSecret: throwIfUndefined(env.OPNSENSE_API_SECRET),
 		verifySsl: false,
 	})
 	testConnection(client)
