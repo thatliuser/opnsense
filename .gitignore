@@ -1,6 +1,2 @@
 node_modules
 .env
-*.json
-!opn.sample.json
-!package.json
-!package-lock.json
