@@ -3,7 +3,7 @@ import { throwIfUndefined } from "./util.mts";
 import { Command } from 'commander'
 import 'dotenv/config'
 import type { Config } from './config.mts'
-import config from './tspmo.config.ts'
+import config from './tspmo.config.mts'
 import { sleep } from './util.mts'
 import ip from 'ipaddr.js'
 import { onAdd, onDel, onUp, waitForGateways } from './index.mts'

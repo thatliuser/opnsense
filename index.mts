@@ -6,7 +6,7 @@ import ip from 'ipaddr.js'
 import 'dotenv/config'
 import { sleep } from './util.mts'
 import { Config } from './config.mts'
-import config from './tspmo.config.ts'
+import config from './tspmo.config.mts'
 
 async function getGateways(client: OPNsenseClient): Promise<z.infer<typeof Gateways>> {
 	const gateways = await client.routing.settingsSearchGateway()

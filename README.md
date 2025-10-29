@@ -30,7 +30,7 @@ PROXMOX_TOKEN_ID='user@pve!tokenid'
 PROXMOX_TOKEN_SECRET='secret'
 ```
 
-Add a `tspmo.config.ts` file:
+Add a `tspmo.config.mts` file (you can copy the sample at `tspmo.config.sample.mts` as a starter):
 ```ts
 import type { Config } from './config.mts'
 import ip from 'ipaddr.js'
