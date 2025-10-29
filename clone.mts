@@ -150,7 +150,7 @@ async function clone() {
 			console.log(`Cloning VM ${newVm} from template ${template}`)
 			await waitForTask(await prox.nodes.$(node).qemu.$(template).clone.$post({
 				newid: newVm,
-				name: `${templateConfig.name}-${cloned}`,
+				name: `${templateConfig.name}-${cloned + 1}`,
 				target: node,
 				full: false,
 			}), node)
