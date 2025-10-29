@@ -52,6 +52,30 @@ npm run clone up
 
 # To destroy the VMs and delete the routes
 npm run clone down
+
+# View available commands
+npm run clone help
+```
+
+To just interact with Opnsense routes, you can use `npm start`:
+```
+# Add gateways and routes to Opnsense
+npm start add
+
+# Set gateways as enabled
+npm start up
+
+# Set gateways and routes as enabled
+npm start up true
+
+# Set gateways as disabled
+npm start down
+
+# Set gateways and routes as disabled
+npm start down true
+
+# View available commands
+npm start help
 ```
 
 ## Credits
